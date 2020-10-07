@@ -28,16 +28,16 @@ static NSString * const kScreenSaverName = @"WebViewScreenSaver";
 static NSTimeInterval const kOneMinute = 60.0;
 
 
-@interface WebViewScreenSaverView () <
-WVSSConfigControllerDelegate,
-WKUIDelegate,
-WKNavigationDelegate>
+@interface WebViewScreenSaverView ()
+    <WVSSConfigControllerDelegate, WKUIDelegate, WKNavigationDelegate>
+
 // Timer callback that loads the next URL in the URL list.
 - (void)loadNext:(NSTimer *)timer;
 // Returns the URL for the index in the preferences.
 - (NSString *)urlForIndex:(NSInteger)index;
 // Returns the time interval in the preferences.
 - (NSTimeInterval)timeIntervalForIndex:(NSInteger)index;
+
 @end
 
 
@@ -244,55 +244,15 @@ WKNavigationDelegate>
     return NO;
 }
 
-#pragma mark WebPolicyDelegate
+#pragma mark WKNavigationDelegate
 
-- (void)webView:(WebView *)webView
-decidePolicyForNewWindowAction:(NSDictionary *)actionInformation
-        request:(NSURLRequest *)request
-   newFrameName:(NSString *)frameName
-decisionListener:(id < WebPolicyDecisionListener >)listener {
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
+{
     // Don't open new windows.
-    [listener ignore];
-}
-
-- (void)webView:(WebView *)webView didFinishLoadForFrame:(WebFrame *)frame {
-    [webView resignFirstResponder];
-    [[[webView mainFrame] frameView] setAllowsScrolling:NO];
-    //[webView setDrawsBackground:YES];
-}
-
-- (void)webView:(WebView *)webView unableToImplementPolicyWithError:(NSError *)error frame:(WebFrame *)frame {
-    NSLog(@"unableToImplement: %@", error);
-}
-
-#pragma mark WebUIDelegate
-
-- (NSResponder *)webViewFirstResponder:(WebView *)sender {
-    return self;
-}
-
-- (void)webViewClose:(WebView *)sender {
-    return;
-}
-
-- (BOOL)webViewIsResizable:(WebView *)sender {
-    return NO;
-}
-
-- (BOOL)webViewIsStatusBarVisible:(WebView *)sender {
-    return NO;
-}
-
-- (void)webViewRunModal:(WebView *)sender {
-    return;
-}
-
-- (void)webViewShow:(WebView *)sender {
-    return;
-}
-
-- (void)webViewUnfocus:(WebView *)sender {
-    return;
+    if (navigationAction.targetFrame == nil) {
+        decisionHandler(WKNavigationActionPolicyCancel);
+    }
+    decisionHandler(WKNavigationActionPolicyAllow);
 }
 
 
